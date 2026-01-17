@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Profile | GitHub Social</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #238636;
+            --primary-dark: #2ea043;
+            --secondary: #1f6feb;
+            --bg-dark: #0d1117;
+            --bg-card: #161b22;
+            --bg-card-light: #21262d;
+            --text: #c9d1d9;
+            --text-light: #8b949e;
+            --border: #30363d;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            padding-bottom: 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+
+        .error-message {
+            background-color: rgba(248, 81, 73, 0.1);
+            border: 1px solid #f85149;
+            color: #f85149;
+            padding: 20px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        /* Profile Header */
+        .profile-header {
+            position: relative;
+            margin-top: 20px;
+            margin-bottom: 40px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .banner {
+            height: 250px;
+            background: linear-gradient(135deg, #0d419d 0%, #238636 100%);
+            position: relative;
+        }
+
+        .banner-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.15;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .profile-info {
+            background-color: var(--bg-card);
+            padding: 30px;
+            padding-top: 80px;
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 30px;
+        }
+
+        .avatar-container {
+            position: absolute;
+            top: -80px;
+            left: 30px;
+        }
+
+        .avatar {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 6px solid var(--bg-card);
+            background-color: #333;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .name-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .username-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .username {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .verified-badge {
+            background-color: var(--secondary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .verified-badge::after {
+            content: "Verified Account";
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .verified-badge:hover::after {
+            opacity: 1;
+        }
+
+        .user-title {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        .bio {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            max-width: 600px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Posts Section */
+        .posts-section {
+            background-color: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .post {
+            background-color: var(--bg-card-light);
+            border-radius: var(--radius);
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .post:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: var(--primary);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .post-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: white;
+            font-size: 18px;
+        }
+
+        .post-title {
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+            flex: 1;
+        }
+
+        .post-date {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .post-description {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            flex: 1;
+        }
+
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tag {
+            background-color: rgba(31, 111, 235, 0.15);
+            color: var(--secondary);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .post-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            margin-top: auto;
+        }
+
+        .post-link:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .sidebar-widget {
+            background-color: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+        }
+
+        .widget-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .widget-title i {
+            color: var(--primary);
+        }
+
+        .links-list {
+            list-style: none;
+        }
+
+        .links-list li {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .links-list li:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .link-item:hover {
+            color: var(--primary);
+        }
+
+        .link-icon {
+            width: 36px;
+            height: 36px;
+            background-color: var(--bg-card-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            background-color: var(--bg-card-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 768px) {
+            .profile-info {
+                padding-top: 100px;
+                flex-direction: column;
+            }
+            
+            .avatar-container {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 20px;
+            }
+            
+            .avatar {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .username {
+                font-size: 1.8rem;
+            }
+            
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner fa-spin"></i> Loading your GitHub profile...
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURATION ====================
+        // REPLACE THIS WITH YOUR GITHUB USERNAME
+        const GITHUB_USERNAME = 'GhostDevelopmentDEV'; 
+        // Set to true if you want to show the verified badge
+        const SHOW_VERIFIED_BADGE = true;
+        // =======================================================
+
+        // Main app state
+        const state = {
+            profile: null,
+            repositories: [],
+            loading: true,
+            error: null
+        };
+
+        // DOM Elements
+        const appElement = document.getElementById('app');
+        const loadingElement = document.getElementById('loading');
+
+        // GitHub API endpoints
+        const API_BASE = 'https://api.github.com';
+        const PROFILE_ENDPOINT = `${API_BASE}/users/${GITHUB_USERNAME}`;
+        const REPOS_ENDPOINT = `${API_BASE}/users/${GITHUB_USERNAME}/repos?sort=updated&direction=desc&per_page=12`;
+
+        // Fetch data from GitHub API[citation:1][citation:5]
+        async function fetchGitHubData() {
+            try {
+                // Fetch profile and repositories concurrently[citation:8]
+                const [profileResponse, reposResponse] = await Promise.all([
+                    fetch(PROFILE_ENDPOINT, {
+                        headers: {
+                            'Accept': 'application/vnd.github+json',
+                            'X-GitHub-Api-Version': '2022-11-28'
+                        }
+                    }),
+                    fetch(REPOS_ENDPOINT, {
+                        headers: {
+                            'Accept': 'application/vnd.github+json',
+                            'X-GitHub-Api-Version': '2022-11-28'
+                        }
+                    })
+                ]);
+
+                // Check for API errors[citation:5]
+                if (!profileResponse.ok) {
+                    throw new Error(`Failed to fetch profile: ${profileResponse.status} ${profileResponse.statusText}`);
+                }
+
+                if (!reposResponse.ok) {
+                    console.warn(`Could not fetch repositories: ${reposResponse.status}`);
+                }
+
+                // Parse JSON responses
+                state.profile = await profileResponse.json();
+                state.repositories = reposResponse.ok ? await reposResponse.json() : [];
+
+                state.loading = false;
+                renderApp();
+
+            } catch (error) {
+                console.error('Error fetching GitHub data:', error);
+                state.error = error.message;
+                state.loading = false;
+                renderApp();
+            }
+        }
+
+        // Format date to relative time
+        function formatRelativeTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) return 'just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+            if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+            
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        // Get language color (common languages)
+        function getLanguageColor(language) {
+            const colors = {
+                'JavaScript': '#f1e05a',
+                'TypeScript': '#3178c6',
+                'Python': '#3572A5',
+                'Java': '#b07219',
+                'Go': '#00ADD8',
+                'Rust': '#dea584',
+                'C++': '#f34b7d',
+                'C#': '#178600',
+                'PHP': '#4F5D95',
+                'Ruby': '#701516',
+                'Swift': '#ffac45',
+                'Kotlin': '#A97BFF',
+                'HTML': '#e34c26',
+                'CSS': '#563d7c',
+                'Shell': '#89e051'
+            };
+            return colors[language] || '#8b949e';
+        }
+
+        // Render the entire application
+        function renderApp() {
+            if (state.loading) {
+                loadingElement.style.display = 'block';
+                return;
+            }
+
+            loadingElement.style.display = 'none';
+
+            if (state.error) {
+                appElement.innerHTML = `
+                    <div class="error-message">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Error Loading Profile</h3>
+                        <p>${state.error}</p>
+                        <p>Please check your GitHub username and try again.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            appElement.innerHTML = generateAppHTML();
+            attachEventListeners();
+        }
+
+        // Generate HTML for the entire app
+        function generateAppHTML() {
+            return `
+                <!-- Profile Header -->
+                <header class="profile-header">
+                    <div class="banner">
+                        <div class="banner-pattern"></div>
+                    </div>
+                    <div class="profile-info">
+                        <div class="avatar-container">
+                            <div class="avatar">
+                                <img src="${state.profile.avatar_url}" alt="${state.profile.name || state.profile.login}'s avatar">
+                            </div>
+                        </div>
+                        <div class="name-section">
+                            <div class="username-row">
+                                <h1 class="username">${state.profile.name || state.profile.login}</h1>
+                                ${SHOW_VERIFIED_BADGE ? '<div class="verified-badge" title="Verified Account"><i class="fas fa-check"></i></div>' : ''}
+                            </div>
+                            <div class="user-title">@${state.profile.login}</div>
+                            <p class="bio">${state.profile.bio || 'No bio available.'}</p>
+                            <div class="stats">
+                                <div class="stat">
+                                    <span class="stat-value">${state.profile.public_repos}</span>
+                                    <span class="stat-label">Repositories</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">${state.profile.followers}</span>
+                                    <span class="stat-label">Followers</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">${state.profile.following}</span>
+                                    <span class="stat-label">Following</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Main Content -->
+                <main class="main-content">
+                    <!-- Posts Section -->
+                    <section class="posts-section">
+                        <h2 class="section-title">
+                            <i class="fas fa-code-branch"></i>
+                            Latest Projects
+                        </h2>
+                        <div class="posts-grid">
+                            ${generateRepositoriesHTML()}
+                        </div>
+                    </section>
+
+                    <!-- Sidebar -->
+                    <aside class="sidebar">
+                        <!-- Contact Information -->
+                        <div class="sidebar-widget">
+                            <h3 class="widget-title">
+                                <i class="fas fa-envelope"></i>
+                                Contact & Links
+                            </h3>
+                            <div class="contact-info">
+                                ${state.profile.location ? `
+                                <div class="contact-item">
+                                    <div class="contact-icon">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div>
+                                        <div>${state.profile.location}</div>
+                                        <div class="post-date">Location</div>
+                                    </div>
+                                </div>` : ''}
+                                
+                                ${state.profile.blog ? `
+                                <div class="contact-item">
+                                    <div class="contact-icon">
+                                        <i class="fas fa-link"></i>
+                                    </div>
+                                    <div>
+                                        <div><a href="${state.profile.blog.startsWith('http') ? state.profile.blog : 'https://' + state.profile.blog}" target="_blank" class="link-item">${state.profile.blog.replace('https://', '').replace('http://', '')}</a></div>
+                                        <div class="post-date">Website</div>
+                                    </div>
+                                </div>` : ''}
+                                
+                                <div class="contact-item">
+                                    <div class="contact-icon">
+                                        <i class="fab fa-github"></i>
+                                    </div>
+                                    <div>
+                                        <div><a href="${state.profile.html_url}" target="_blank" class="link-item">${state.profile.login}</a></div>
+                                        <div class="post-date">GitHub Profile</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Links -->
+                        <div class="sidebar-widget">
+                            <h3 class="widget-title">
+                                <i class="fas fa-external-link-alt"></i>
+                                Quick Links
+                            </h3>
+                            <ul class="links-list">
+                                <li>
+                                    <a href="${state.profile.html_url}?tab=repositories" class="link-item" target="_blank">
+                                        <div class="link-icon">
+                                            <i class="fas fa-code"></i>
+                                        </div>
+                                        <div>
+                                            <div>All Repositories</div>
+                                            <div class="post-date">${state.profile.public_repos} public projects</div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="${state.profile.html_url}?tab=stars" class="link-item" target="_blank">
+                                        <div class="link-icon">
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                        <div>
+                                            <div>Starred Repositories</div>
+                                            <div class="post-date">Browse favorites</div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="${state.profile.html_url}?tab=followers" class="link-item" target="_blank">
+                                        <div class="link-icon">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div>
+                                            <div>Followers</div>
+                                            <div class="post-date">${state.profile.followers} developers</div>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </aside>
+                </main>
+
+                <!-- Footer -->
+                <footer class="footer">
+                    <p>© ${new Date().getFullYear()} ${state.profile.name || state.profile.login}'s Developer Profile. Data loaded live from GitHub.</p>
+                    <p>Last updated: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} | Powered by GitHub REST API</p>
+                </footer>
+            `;
+        }
+
+        // Generate HTML for repositories
+        function generateRepositoriesHTML() {
+            if (!state.repositories.length) {
+                return '<p class="loading">No public repositories found.</p>';
+            }
+
+            return state.repositories.slice(0, 4).map(repo => `
+                <article class="post">
+                    <div class="post-header">
+                        <div class="post-icon">
+                            <i class="fab fa-${repo.language ? 'js' : 'github'}"></i>
+                        </div>
+                        <div class="post-title">${repo.name}</div>
+                        <div class="post-date">${formatRelativeTime(repo.updated_at)}</div>
+                    </div>
+                    <p class="post-description">
+                        ${repo.description || 'No description provided.'}
+                    </p>
+                    <div class="post-tags">
+                        ${repo.language ? `<span class="tag" style="background-color: ${getLanguageColor(repo.language)}20; color: ${getLanguageColor(repo.language)}">${repo.language}</span>` : ''}
+                        ${repo.stargazers_count > 0 ? `<span class="tag"><i class="far fa-star"></i> ${repo.stargazers_count}</span>` : ''}
+                        ${repo.fork ? `<span class="tag"><i class="fas fa-code-branch"></i> Fork</span>` : ''}
+                    </div>
+                    <a href="${repo.html_url}" class="post-link" target="_blank">
+                        <i class="fab fa-github"></i>
+                        View Repository
+                    </a>
+                </article>
+            `).join('');
+        }
+
+        // Attach event listeners
+        function attachEventListeners() {
+            // Add like functionality to posts
+            document.querySelectorAll('.post').forEach(post => {
+                const likeBtn = document.createElement('button');
+                likeBtn.innerHTML = '<i class="far fa-heart"></i>';
+                likeBtn.style.cssText = `
+                    background: none;
+                    border: none;
+                    color: var(--text-light);
+                    cursor: pointer;
+                    font-size: 1rem;
+                    margin-left: auto;
+                    transition: color 0.3s;
+                `;
+                
+                const postHeader = post.querySelector('.post-header');
+                postHeader.appendChild(likeBtn);
+                
+                likeBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const icon = this.querySelector('i');
+                    if (icon.classList.contains('far')) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        this.style.color = '#f85149';
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        this.style.color = 'var(--text-light)';
+                    }
+                });
+            });
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            if (GITHUB_USERNAME === 'YOUR_GITHUB_USERNAME') {
+                appElement.innerHTML = `
+                    <div class="error-message">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Configuration Required</h3>
+                        <p>Please replace <code>YOUR_GITHUB_USERNAME</code> in the JavaScript code with your actual GitHub username.</p>
+                        <p>Look for line: <code>const GITHUB_USERNAME = 'YOUR_GITHUB_USERNAME';</code></p>
+                    </div>
+                `;
+                return;
+            }
+            
+            fetchGitHubData();
+        });
+    </script>
+</body>
+</html>
