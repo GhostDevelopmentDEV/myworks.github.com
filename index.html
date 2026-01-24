@@ -13,6 +13,7 @@
             --primary: #238636;
             --primary-dark: #2ea043;
             --secondary: #1f6feb;
+            --verified: #3b8132
             --bg-dark: #0d1117;
             --bg-card: #161b22;
             --bg-card-light: #21262d;
@@ -139,7 +140,7 @@
         }
 
         .verified-badge {
-            background-color: var(--secondary);
+            background-color: var(--verified);
             color: white;
             width: 24px;
             height: 24px;
@@ -152,7 +153,7 @@
         }
 
         .verified-badge::after {
-            content: "Verified Account";
+            content: "Official page of GhostDEV";
             position: absolute;
             top: -30px;
             left: 50%;
@@ -481,7 +482,7 @@
         // REPLACE THIS WITH YOUR GITHUB USERNAME
         const GITHUB_USERNAME = 'GhostDevelopmentDEV'; 
         // Set to true if you want to show the verified badge
-        const SHOW_VERIFIED_BADGE = false;
+        const SHOW_VERIFIED_BADGE = true;
         // =======================================================
 
         // Main app state
