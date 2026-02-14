@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* (styles unchanged from your original – keep them as they are) */
         :root {
             --primary: #238636;
             --primary-dark: #2ea043;
@@ -74,6 +75,8 @@
             height: 250px;
             background: linear-gradient(135deg, #0d419d 0%, #238636 100%);
             position: relative;
+            background-size: cover;
+            background-position: center;
         }
 
         .banner-pattern {
@@ -149,10 +152,11 @@
             justify-content: center;
             font-size: 14px;
             position: relative;
+            cursor: help;
         }
 
         .verified-badge::after {
-            content: "Official page of GhostDEV";
+            content: attr(data-tooltip);
             position: absolute;
             top: -30px;
             left: 50%;
@@ -288,6 +292,9 @@
             color: white;
             font-size: 1.1rem;
             flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .post-date {
@@ -299,6 +306,8 @@
             color: var(--text-light);
             margin-bottom: 20px;
             flex: 1;
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
 
         .post-tags {
@@ -306,19 +315,29 @@
             flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 20px;
+            min-height: 28px;
         }
 
         .tag {
             background-color: rgba(31, 111, 235, 0.15);
             color: var(--secondary);
-            padding: 5px 12px;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tag i {
+            font-size: 0.7rem;
         }
 
         .post-link {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             background-color: var(--primary);
             color: white;
@@ -478,10 +497,42 @@
 
     <script>
         // ==================== CONFIGURATION ====================
-        // REPLACE THIS WITH YOUR GITHUB USERNAME
+        // REPLACE WITH YOUR GITHUB USERNAME
         const GITHUB_USERNAME = 'GhostDevelopmentDEV'; 
-        // Set to true if you want to show the verified badge
+        
+        // ----- WEBSITE INFORMATION -----
+        const WEBSITE_APP_VERSION = 0.2
+        
+        // ----- BANNER CUSTOMIZATION -----
+        // Place your banner image in the root of your repository (e.g., banner.jpg)
+        // Then set the filename here. Set to null to keep the default gradient.
+        const BANNER_IMAGE = 'banner.jpg'; // or null
+
+        // ----- VERIFIED BADGE CUSTOMIZATION -----
         const SHOW_VERIFIED_BADGE = true;
+        const VERIFIED_BADGE_TOOLTIP = 'Official page of GhostDEV'; // Text shown on hover
+
+        // ----- REPOSITORY CARD CUSTOMIZATION -----
+        // Choose which metadata to display on each card
+        const SHOW_LANGUAGE = true;          // Show programming language with color dot
+        const SHOW_STARS = true;              // Show star count
+        const SHOW_FORKS = false;              // Show fork count (set to true if you want forks)
+        const SHOW_DESCRIPTION = true;         // Show repository description
+        const MAX_REPOS = 6;                    // Number of repositories to display
+
+        // ----- CUSTOM TAGS FOR SPECIFIC REPOSITORIES -----
+        // Add custom tags to any repository by name (case-insensitive)
+        // Format: { "repo-name": ["Tag1", "Tag2"] }
+        const CUSTOM_REPO_TAGS = {
+            // Example: "my-awesome-project": ["Featured", "Documentation"],
+            // "GhostDevelopmentDEV.github.io": ["Website"],
+            "myworks.github.com": ["You are here"],
+        };
+
+        // ----- ADDITIONAL CUSTOMIZATION -----
+        // You can also override the banner gradient colors if no image is used
+        const BANNER_GRADIENT_START = '#ffffff'; // left color
+        const BANNER_GRADIENT_END = '#000000';   // right color
         // =======================================================
 
         // Main app state
@@ -499,12 +550,11 @@
         // GitHub API endpoints
         const API_BASE = 'https://api.github.com';
         const PROFILE_ENDPOINT = `${API_BASE}/users/${GITHUB_USERNAME}`;
-        const REPOS_ENDPOINT = `${API_BASE}/users/${GITHUB_USERNAME}/repos?sort=updated&direction=desc&per_page=12`;
+        const REPOS_ENDPOINT = `${API_BASE}/users/${GITHUB_USERNAME}/repos?sort=updated&direction=desc&per_page=${MAX_REPOS}`;
 
-        // Fetch data from GitHub API[citation:1][citation:5]
+        // Fetch data from GitHub API
         async function fetchGitHubData() {
             try {
-                // Fetch profile and repositories concurrently[citation:8]
                 const [profileResponse, reposResponse] = await Promise.all([
                     fetch(PROFILE_ENDPOINT, {
                         headers: {
@@ -520,7 +570,6 @@
                     })
                 ]);
 
-                // Check for API errors[citation:5]
                 if (!profileResponse.ok) {
                     throw new Error(`Failed to fetch profile: ${profileResponse.status} ${profileResponse.statusText}`);
                 }
@@ -529,7 +578,6 @@
                     console.warn(`Could not fetch repositories: ${reposResponse.status}`);
                 }
 
-                // Parse JSON responses
                 state.profile = await profileResponse.json();
                 state.repositories = reposResponse.ok ? await reposResponse.json() : [];
 
@@ -575,9 +623,22 @@
                 'Kotlin': '#A97BFF',
                 'HTML': '#e34c26',
                 'CSS': '#563d7c',
-                'Shell': '#89e051'
+                'Shell': '#89e051',
+                'Vue': '#41b883',
+                'Dockerfile': '#384d54',
             };
             return colors[language] || '#8b949e';
+        }
+
+        // Generate custom tags for a repository based on configuration
+        function getCustomTagsForRepo(repoName) {
+            const lowerName = repoName.toLowerCase();
+            for (const [key, tags] of Object.entries(CUSTOM_REPO_TAGS)) {
+                if (lowerName === key.toLowerCase()) {
+                    return tags;
+                }
+            }
+            return [];
         }
 
         // Render the entire application
@@ -601,7 +662,25 @@
             }
 
             appElement.innerHTML = generateAppHTML();
+            applyBannerImage();
             attachEventListeners();
+        }
+
+        // Apply banner image if configured
+        function applyBannerImage() {
+            const banner = document.querySelector('.banner');
+            if (!banner) return;
+
+            if (BANNER_IMAGE) {
+                // Try to load the image from the root
+                banner.style.backgroundImage = `url('${BANNER_IMAGE}')`;
+                banner.style.backgroundSize = 'cover';
+                banner.style.backgroundPosition = 'center';
+                // Keep the pattern overlay
+            } else {
+                // Use gradient with custom colors
+                banner.style.background = `linear-gradient(135deg, ${BANNER_GRADIENT_START} 0%, ${BANNER_GRADIENT_END} 100%)`;
+            }
         }
 
         // Generate HTML for the entire app
@@ -621,7 +700,7 @@
                         <div class="name-section">
                             <div class="username-row">
                                 <h1 class="username">${state.profile.name || state.profile.login}</h1>
-                                ${SHOW_VERIFIED_BADGE ? '<div class="verified-badge" title="Verified Account"><i class="fas fa-check"></i></div>' : ''}
+                                ${SHOW_VERIFIED_BADGE ? `<div class="verified-badge" data-tooltip="${VERIFIED_BADGE_TOOLTIP}"><i class="fas fa-check"></i></div>` : ''}
                             </div>
                             <div class="user-title">@${state.profile.login}</div>
                             <p class="bio">${state.profile.bio || 'No bio available.'}</p>
@@ -682,7 +761,7 @@
                                         <i class="fas fa-link"></i>
                                     </div>
                                     <div>
-                                        <div><a href="${state.profile.blog.startsWith('http') ? state.profile.blog : 'https://' + state.profile.blog}" target="_blank" class="link-item">${state.profile.blog.replace('https://', '').replace('http://', '')}</a></div>
+                                        <div><a href="${state.profile.blog.startsWith('http') ? state.profile.blog : 'https://' + state.profile.blog}" target="_blank" class="link-item" style="display: inline;">${state.profile.blog.replace('https://', '').replace('http://', '')}</a></div>
                                         <div class="post-date">Website</div>
                                     </div>
                                 </div>` : ''}
@@ -692,7 +771,7 @@
                                         <i class="fab fa-github"></i>
                                     </div>
                                     <div>
-                                        <div><a href="${state.profile.html_url}" target="_blank" class="link-item">${state.profile.login}</a></div>
+                                        <div><a href="${state.profile.html_url}" target="_blank" class="link-item" style="display: inline;">${state.profile.login}</a></div>
                                         <div class="post-date">GitHub Profile</div>
                                     </div>
                                 </div>
@@ -748,6 +827,7 @@
                 <footer class="footer">
                     <p>© ${new Date().getFullYear()} ${state.profile.name || state.profile.login}'s Developer Profile. Data loaded live from GitHub.</p>
                     <p>Last updated: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} | Powered by GitHub REST API</p>
+                    <p>Website version: ${WEBSITE_APP_VERSION}</p>
                 </footer>
             `;
         }
@@ -758,34 +838,54 @@
                 return '<p class="loading">No public repositories found.</p>';
             }
 
-            return state.repositories.slice(0, 4).map(repo => `
+            return state.repositories.map(repo => {
+                const customTags = getCustomTagsForRepo(repo.name);
+                const tags = [];
+
+                // Add language tag if enabled and language exists
+                if (SHOW_LANGUAGE && repo.language) {
+                    const color = getLanguageColor(repo.language);
+                    tags.push(`<span class="tag" style="background-color: ${color}20; color: ${color}"><span style="background-color: ${color}; width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px;"></span>${repo.language}</span>`);
+                }
+
+                // Add stars if enabled and > 0
+                if (SHOW_STARS && repo.stargazers_count > 0) {
+                    tags.push(`<span class="tag"><i class="far fa-star"></i> ${repo.stargazers_count}</span>`);
+                }
+
+                // Add forks if enabled and > 0
+                if (SHOW_FORKS && repo.forks_count > 0) {
+                    tags.push(`<span class="tag"><i class="fas fa-code-branch"></i> ${repo.forks_count}</span>`);
+                }
+
+                // Add custom tags
+                customTags.forEach(tag => {
+                    tags.push(`<span class="tag" style="background-color: rgba(35, 134, 54, 0.15); color: #2ea043;">${tag}</span>`);
+                });
+
+                return `
                 <article class="post">
                     <div class="post-header">
                         <div class="post-icon">
                             <i class="fab fa-${repo.language ? 'js' : 'github'}"></i>
                         </div>
-                        <div class="post-title">${repo.name}</div>
+                        <div class="post-title" title="${repo.name}">${repo.name}</div>
                         <div class="post-date">${formatRelativeTime(repo.updated_at)}</div>
                     </div>
-                    <p class="post-description">
-                        ${repo.description || 'No description provided.'}
-                    </p>
+                    ${SHOW_DESCRIPTION ? `<p class="post-description">${repo.description || 'No description provided.'}</p>` : ''}
                     <div class="post-tags">
-                        ${repo.language ? `<span class="tag" style="background-color: ${getLanguageColor(repo.language)}20; color: ${getLanguageColor(repo.language)}">${repo.language}</span>` : ''}
-                        ${repo.stargazers_count > 0 ? `<span class="tag"><i class="far fa-star"></i> ${repo.stargazers_count}</span>` : ''}
-                        ${repo.fork ? `<span class="tag"><i class="fas fa-code-branch"></i> Fork</span>` : ''}
+                        ${tags.join('')}
                     </div>
                     <a href="${repo.html_url}" class="post-link" target="_blank">
                         <i class="fab fa-github"></i>
                         View Repository
                     </a>
                 </article>
-            `).join('');
+            `}).join('');
         }
 
-        // Attach event listeners
+        // Attach event listeners (like button)
         function attachEventListeners() {
-            // Add like functionality to posts
             document.querySelectorAll('.post').forEach(post => {
                 const likeBtn = document.createElement('button');
                 likeBtn.innerHTML = '<i class="far fa-heart"></i>';
@@ -800,21 +900,23 @@
                 `;
                 
                 const postHeader = post.querySelector('.post-header');
-                postHeader.appendChild(likeBtn);
-                
-                likeBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const icon = this.querySelector('i');
-                    if (icon.classList.contains('far')) {
-                        icon.classList.remove('far');
-                        icon.classList.add('fas');
-                        this.style.color = '#f85149';
-                    } else {
-                        icon.classList.remove('fas');
-                        icon.classList.add('far');
-                        this.style.color = 'var(--text-light)';
-                    }
-                });
+                if (postHeader) {
+                    postHeader.appendChild(likeBtn);
+                    
+                    likeBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const icon = this.querySelector('i');
+                        if (icon.classList.contains('far')) {
+                            icon.classList.remove('far');
+                            icon.classList.add('fas');
+                            this.style.color = '#f85149';
+                        } else {
+                            icon.classList.remove('fas');
+                            icon.classList.add('far');
+                            this.style.color = 'var(--text-light)';
+                        }
+                    });
+                }
             });
         }
 
