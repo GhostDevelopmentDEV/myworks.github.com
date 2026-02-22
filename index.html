@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Developer Profile | GitHub Social</title>
+    <title>Developer Profile | GitHub + Posts</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* (styles unchanged from your original – keep them as they are) */
+        /* (стили без изменений – оставьте как в оригинале) */
         :root {
             --primary: #238636;
             --primary-dark: #2ea043;
@@ -232,10 +232,18 @@
             box-shadow: var(--shadow);
         }
 
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
         .section-title {
             font-size: 1.5rem;
             font-weight: 600;
-            margin-bottom: 25px;
             color: white;
             display: flex;
             align-items: center;
@@ -244,6 +252,31 @@
 
         .section-title i {
             color: var(--primary);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            background-color: var(--bg-card-light);
+            padding: 4px;
+            border-radius: 30px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: white;
         }
 
         .posts-grid {
@@ -272,6 +305,7 @@
             display: flex;
             align-items: center;
             margin-bottom: 15px;
+            position: relative;
         }
 
         .post-icon {
@@ -351,6 +385,22 @@
 
         .post-link:hover {
             background-color: var(--primary-dark);
+        }
+
+        /* Like button */
+        .like-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 1rem;
+            margin-left: auto;
+            transition: color 0.3s;
+            padding: 5px;
+        }
+
+        .like-btn.liked {
+            color: #f85149;
         }
 
         /* Sidebar */
@@ -484,6 +534,11 @@
                 flex-wrap: wrap;
                 gap: 20px;
             }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
@@ -498,17 +553,16 @@
     <script>
         // ==================== CONFIGURATION ====================
         const GITHUB_USERNAME = 'GhostDevelopmentDEV'; 
-        const WEBSITE_APP_VERSION = 0.2.1
+        const WEBSITE_APP_VERSION = 0.3;
         
         // ----- BANNER CUSTOMIZATION -----
-        const BANNER_IMAGE = 'banner1.jpg'; // or null
+        const BANNER_IMAGE = 'banner1.jpg';
 
         // ----- VERIFIED BADGE CUSTOMIZATION -----
         const SHOW_VERIFIED_BADGE = true;
         const VERIFIED_BADGE_TOOLTIP = 'Official page of GhostDEV'; 
 
         // ----- REPOSITORY CARD CUSTOMIZATION -----
-
         const SHOW_LANGUAGE = true;         
         const SHOW_STARS = true;              
         const SHOW_FORKS = false;              
@@ -516,15 +570,46 @@
         const MAX_REPOS = 6;                    
 
         // ----- CUSTOM TAGS FOR SPECIFIC REPOSITORIES -----
-        // Format: { "repo-name": ["Tag1", "Tag2"] }
         const CUSTOM_REPO_TAGS = {
-            "myworks.github.com": ["You are here"],
-        };
+            "myworks.github.com": ["You are here", "V0.3"], 
+        }
 
         // ----- ADDITIONAL CUSTOMIZATION -----
         const BANNER_GRADIENT_START = '#ffffff'; // left color
         const BANNER_GRADIENT_END = '#000000';   // right color
-        // =======================================================
+
+        // ============= STATIC POSTS =============
+        
+        /* Template: 
+            {
+                title: "TITLE",
+                description: "DESCRIPTION",
+                date: "DATE (YYYY-MM-DD)",
+                icon: "ICON_LINK",
+                tags: ["TAG", "TAG"],
+                link: "LINK"
+            }
+                */
+        
+        const MY_POSTS = [
+            {   // First post of the website
+                title: "test",
+                description: "this is just a test post",
+                date: "2026-02-22",
+                icon: "fa-brands fa-dev",
+                tags: ["dev"],
+                link: null
+            },
+            {
+                title: "V0.3 RELEASED!",
+                description: "Website updated! Now it has posts!",
+                date: "2026-02-22",
+                icon: "fa-solid fa-gear",
+                tags: ["0.3"],
+                link: null
+            }
+        ];
+        // ========================================================
 
         // Main app state
         const state = {
@@ -597,6 +682,12 @@
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
+        // Format date to simple string (для постов)
+        function formatDate(dateString) {
+            const d = new Date(dateString);
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
         // Get language color (common languages)
         function getLanguageColor(language) {
             const colors = {
@@ -632,7 +723,130 @@
             return [];
         }
 
-        // Render the entire application
+        // ============= ФУНКЦИИ ГЕНЕРАЦИИ СЕТОК =============
+        function generateRepositoriesHTML() {
+            if (!state.repositories.length) {
+                return '<p class="loading">No public repositories found.</p>';
+            }
+
+            return state.repositories.map(repo => {
+                const customTags = getCustomTagsForRepo(repo.name);
+                const tags = [];
+
+                // Add language tag if enabled and language exists
+                if (SHOW_LANGUAGE && repo.language) {
+                    const color = getLanguageColor(repo.language);
+                    tags.push(`<span class="tag" style="background-color: ${color}20; color: ${color}"><span style="background-color: ${color}; width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px;"></span>${repo.language}</span>`);
+                }
+
+                // Add stars if enabled and > 0
+                if (SHOW_STARS && repo.stargazers_count > 0) {
+                    tags.push(`<span class="tag"><i class="far fa-star"></i> ${repo.stargazers_count}</span>`);
+                }
+
+                // Add forks if enabled and > 0
+                if (SHOW_FORKS && repo.forks_count > 0) {
+                    tags.push(`<span class="tag"><i class="fas fa-code-branch"></i> ${repo.forks_count}</span>`);
+                }
+
+                // Add custom tags
+                customTags.forEach(tag => {
+                    tags.push(`<span class="tag" style="background-color: rgba(35, 134, 54, 0.15); color: #2ea043;">${tag}</span>`);
+                });
+
+                return `
+                <article class="post" data-repo="${repo.name}">
+                    <div class="post-header">
+                        <div class="post-icon">
+                            <i class="fab fa-${repo.language ? 'js' : 'github'}"></i>
+                        </div>
+                        <div class="post-title" title="${repo.name}">${repo.name}</div>
+                        <div class="post-date">${formatRelativeTime(repo.updated_at)}</div>
+                        <button class="like-btn" title="Like"><i class="far fa-heart"></i></button>
+                    </div>
+                    ${SHOW_DESCRIPTION ? `<p class="post-description">${repo.description || 'No description provided.'}</p>` : ''}
+                    <div class="post-tags">
+                        ${tags.join('')}
+                    </div>
+                    <a href="${repo.html_url}" class="post-link" target="_blank">
+                        <i class="fab fa-github"></i>
+                        View Repository
+                    </a>
+                </article>
+            `}).join('');
+        }
+
+        function generatePostsHTML() {
+            if (!MY_POSTS.length) {
+                return '<p class="loading">No posts yet.</p>';
+            }
+
+            return MY_POSTS.map(post => {
+                const tags = post.tags.map(tag => 
+                    `<span class="tag" style="background-color: rgba(31, 111, 235, 0.15); color: #1f6feb;">${tag}</span>`
+                ).join('');
+
+                return `
+                <article class="post">
+                    <div class="post-header">
+                        <div class="post-icon">
+                            <i class="${post.icon}"></i>
+                        </div>
+                        <div class="post-title" title="${post.title}">${post.title}</div>
+                        <div class="post-date">${formatDate(post.date)}</div>
+                    </div>
+                    <p class="post-description">${post.description}</p>
+                    <div class="post-tags">
+                        ${tags}
+                    </div>
+                    <a href="${post.link}" class="post-link" target="_blank">
+                        <i class="fas fa-book-open"></i>
+                        Read more
+                    </a>
+                </article>
+            `}).join('');
+        }
+
+        // ============= УПРАВЛЕНИЕ ТАБАМИ =============
+        let currentTab = 'repos'; // 'repos' or 'posts'
+
+        function renderRepos(postsGrid, sectionTitle) {
+            postsGrid.innerHTML = generateRepositoriesHTML();
+            sectionTitle.innerHTML = '<i class="fas fa-code-branch"></i> Latest Projects';
+            // навешиваем лайки на новые карточки
+            attachLikeButtons(postsGrid);
+        }
+
+        function renderPosts(postsGrid, sectionTitle) {
+            postsGrid.innerHTML = generatePostsHTML();
+            sectionTitle.innerHTML = '<i class="fas fa-pencil-alt"></i> My Posts';
+            // для постов лайки не добавляем
+        }
+
+        function attachLikeButtons(container) {
+            container.querySelectorAll('.like-btn').forEach(btn => {
+                // убираем старые обработчики, чтобы не множились
+                btn.replaceWith(btn.cloneNode(true));
+            });
+            // заново находим и навешиваем
+            container.querySelectorAll('.like-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const icon = this.querySelector('i');
+                    if (icon.classList.contains('far')) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        this.classList.add('liked');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        this.classList.remove('liked');
+                    }
+                });
+            });
+        }
+
+        // ============= РЕНДЕР ПОЛНОЙ СТРАНИЦЫ =============
         function renderApp() {
             if (state.loading) {
                 loadingElement.style.display = 'block';
@@ -654,7 +868,34 @@
 
             appElement.innerHTML = generateAppHTML();
             applyBannerImage();
-            attachEventListeners();
+
+            // после вставки DOM инициализируем табы
+            const postsGrid = document.querySelector('.posts-grid');
+            const sectionTitle = document.querySelector('.section-title');
+            const tabRepos = document.getElementById('tab-repos');
+            const tabPosts = document.getElementById('tab-posts');
+
+            if (tabRepos && tabPosts && postsGrid && sectionTitle) {
+                // обработчики
+                tabRepos.addEventListener('click', () => {
+                    if (currentTab === 'repos') return;
+                    currentTab = 'repos';
+                    tabRepos.classList.add('active');
+                    tabPosts.classList.remove('active');
+                    renderRepos(postsGrid, sectionTitle);
+                });
+
+                tabPosts.addEventListener('click', () => {
+                    if (currentTab === 'posts') return;
+                    currentTab = 'posts';
+                    tabPosts.classList.add('active');
+                    tabRepos.classList.remove('active');
+                    renderPosts(postsGrid, sectionTitle);
+                });
+
+                // начальное состояние: показываем репозитории
+                renderRepos(postsGrid, sectionTitle);
+            }
         }
 
         // Apply banner image if configured
@@ -715,14 +956,20 @@
 
                 <!-- Main Content -->
                 <main class="main-content">
-                    <!-- Posts Section -->
+                    <!-- Posts Section with Tabs -->
                     <section class="posts-section">
-                        <h2 class="section-title">
-                            <i class="fas fa-code-branch"></i>
-                            Latest Projects
-                        </h2>
-                        <div class="posts-grid">
-                            ${generateRepositoriesHTML()}
+                        <div class="section-header">
+                            <h2 class="section-title" id="section-title">
+                                <i class="fas fa-code-branch"></i>
+                                Latest Projects
+                            </h2>
+                            <div class="tabs">
+                                <button class="tab-btn active" id="tab-repos">Projects</button>
+                                <button class="tab-btn" id="tab-posts">Posts</button>
+                            </div>
+                        </div>
+                        <div class="posts-grid" id="posts-grid">
+                            <!-- будет заполнено через js -->
                         </div>
                     </section>
 
@@ -823,97 +1070,9 @@
             `;
         }
 
-        // Generate HTML for repositories
-        function generateRepositoriesHTML() {
-            if (!state.repositories.length) {
-                return '<p class="loading">No public repositories found.</p>';
-            }
-
-            return state.repositories.map(repo => {
-                const customTags = getCustomTagsForRepo(repo.name);
-                const tags = [];
-
-                // Add language tag if enabled and language exists
-                if (SHOW_LANGUAGE && repo.language) {
-                    const color = getLanguageColor(repo.language);
-                    tags.push(`<span class="tag" style="background-color: ${color}20; color: ${color}"><span style="background-color: ${color}; width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px;"></span>${repo.language}</span>`);
-                }
-
-                // Add stars if enabled and > 0
-                if (SHOW_STARS && repo.stargazers_count > 0) {
-                    tags.push(`<span class="tag"><i class="far fa-star"></i> ${repo.stargazers_count}</span>`);
-                }
-
-                // Add forks if enabled and > 0
-                if (SHOW_FORKS && repo.forks_count > 0) {
-                    tags.push(`<span class="tag"><i class="fas fa-code-branch"></i> ${repo.forks_count}</span>`);
-                }
-
-                // Add custom tags
-                customTags.forEach(tag => {
-                    tags.push(`<span class="tag" style="background-color: rgba(35, 134, 54, 0.15); color: #2ea043;">${tag}</span>`);
-                });
-
-                return `
-                <article class="post">
-                    <div class="post-header">
-                        <div class="post-icon">
-                            <i class="fab fa-${repo.language ? 'js' : 'github'}"></i>
-                        </div>
-                        <div class="post-title" title="${repo.name}">${repo.name}</div>
-                        <div class="post-date">${formatRelativeTime(repo.updated_at)}</div>
-                    </div>
-                    ${SHOW_DESCRIPTION ? `<p class="post-description">${repo.description || 'No description provided.'}</p>` : ''}
-                    <div class="post-tags">
-                        ${tags.join('')}
-                    </div>
-                    <a href="${repo.html_url}" class="post-link" target="_blank">
-                        <i class="fab fa-github"></i>
-                        View Repository
-                    </a>
-                </article>
-            `}).join('');
-        }
-
-        // Attach event listeners (like button)
-        function attachEventListeners() {
-            document.querySelectorAll('.post').forEach(post => {
-                const likeBtn = document.createElement('button');
-                likeBtn.innerHTML = '<i class="far fa-heart"></i>';
-                likeBtn.style.cssText = `
-                    background: none;
-                    border: none;
-                    color: var(--text-light);
-                    cursor: pointer;
-                    font-size: 1rem;
-                    margin-left: auto;
-                    transition: color 0.3s;
-                `;
-                
-                const postHeader = post.querySelector('.post-header');
-                if (postHeader) {
-                    postHeader.appendChild(likeBtn);
-                    
-                    likeBtn.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const icon = this.querySelector('i');
-                        if (icon.classList.contains('far')) {
-                            icon.classList.remove('far');
-                            icon.classList.add('fas');
-                            this.style.color = '#f85149';
-                        } else {
-                            icon.classList.remove('fas');
-                            icon.classList.add('far');
-                            this.style.color = 'var(--text-light)';
-                        }
-                    });
-                }
-            });
-        }
-
         // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
-            if (GITHUB_USERNAME === 'YOUR_GITHUB_USERNAME') {
+            if (GITHUB_USERNAME === 'USERNAME') {
                 appElement.innerHTML = `
                     <div class="error-message">
                         <h3><i class="fas fa-exclamation-triangle"></i> Configuration Required</h3>
