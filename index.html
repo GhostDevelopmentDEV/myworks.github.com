@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Developer Profile | GitHub + Posts</title>
+    <title>Developer Profile | GhostDEV</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -542,17 +542,19 @@
     </style>
 </head>
 <body>
-    <div class="container" id="app">
-        <!-- Loading State -->
-        <div class="loading" id="loading">
-            <i class="fas fa-spinner fa-spin"></i> Loading GitHub profile...
-        </div>
+    <!-- Checking maintenance mode -->
+    <div id="checking-access" style="display: flex; justify-content: center; align-items: center; height: 100vh; color: var(--text-light); font-size: 1.2rem;">
+        <i class="fas fa-spinner fa-spin" style="margin-right: 10px;"></i> Checking access...
     </div>
+
+    <!-- Main App (Invisible by default) -->
+    <div class="container" id="app" style="display: none;"></div>
 
     <script>
         // ==================== CONFIGURATION ====================
-        const GITHUB_USERNAME = 'GhostDevelopmentDEV'; 
-        const WEBSITE_APP_VERSION = 0.3;
+        const GITHUB_USERNAME = 'GhostDevelopmentDEV';
+        const WEBSITE_APP_VERSION = 0.4;
+        const CONFIG_URL = 'https://raw.githubusercontent.com/GhostDevelopmentDEV/my-config/main/maintenance-config.txt';
         
         // ----- BANNER CUSTOMIZATION -----
         const BANNER_IMAGE = 'banner1.jpg';
@@ -622,6 +624,14 @@
                 icon: "fa-solid fa-mug-saucer",
                 tags: ["🇷🇺"],
                 link: ""
+            },
+            {
+                title: "New update! V0.4",
+                description: "New update published!",
+                date: "2026-05-29",
+                icon: "fa-solid fa-check",
+                tags: ["0.4"],
+                link: ""
             }
         ];
         // ========================================================
@@ -636,12 +646,59 @@
 
         // DOM Elements
         const appElement = document.getElementById('app');
-        const loadingElement = document.getElementById('loading');
 
         // GitHub API endpoints
         const API_BASE = 'https://api.github.com';
         const PROFILE_ENDPOINT = `${API_BASE}/users/${GITHUB_USERNAME}`;
         const REPOS_ENDPOINT = `${API_BASE}/users/${GITHUB_USERNAME}/repos?sort=updated&direction=desc&per_page=${MAX_REPOS}`;
+
+        // ==================== ФУНКЦИИ ПРОВЕРКИ ТЕХ. ОБСЛУЖИВАНИЯ ====================
+        /**
+         * Парсит простой конфиг вида "Ключ=Значение"
+         */
+        function parseConfigFile(text) {
+            const config = {};
+            const lines = text.split('\n');
+            for (let line of lines) {
+                line = line.trim();
+                if (line === '' || line.startsWith('#')) continue;
+                const eqIndex = line.indexOf('=');
+                if (eqIndex === -1) continue;
+                const key = line.substring(0, eqIndex).trim();
+                const value = line.substring(eqIndex + 1).trim();
+                config[key] = value;
+            }
+            return config;
+        }
+
+        /**
+         * Проверяет конфиг и, если включён режим обслуживания, перенаправляет на MaintenancePage.html.
+         * Возвращает true, если можно продолжать загрузку основного сайта.
+         */
+        async function checkConfigAndRedirect() {
+            try {
+                const response = await fetch(CONFIG_URL);
+                if (!response.ok) throw new Error('Config fetch failed');
+                const text = await response.text();
+                const config = parseConfigFile(text);
+
+                if (config['MaintenanceMode'] && config['MaintenanceMode'].toLowerCase() === 'true') {
+                    // Собираем параметры для страницы обслуживания
+                    const params = new URLSearchParams();
+                    if (config['Description']) params.set('desc', config['Description']);
+                    if (config['Reason']) params.set('reason', config['Reason']);
+                    if (config['TimeStart']) params.set('timeStart', config['TimeStart']);
+                    if (config['TimeFinish']) params.set('timeFinish', config['TimeFinish']);
+                    // Перенаправление
+                    window.location.href = 'MaintenancePage.html?' + params.toString();
+                    return false; // приложение не загружаем
+                }
+            } catch (err) {
+                // Если не удалось получить конфиг, считаем, что техработ нет
+                console.warn('Could not check maintenance config:', err);
+            }
+            return true;
+        }
 
         // Fetch data from GitHub API
         async function fetchGitHubData() {
@@ -828,22 +885,18 @@
         function renderRepos(postsGrid, sectionTitle) {
             postsGrid.innerHTML = generateRepositoriesHTML();
             sectionTitle.innerHTML = '<i class="fas fa-code-branch"></i> Latest Projects';
-            // навешиваем лайки на новые карточки
             attachLikeButtons(postsGrid);
         }
 
         function renderPosts(postsGrid, sectionTitle) {
             postsGrid.innerHTML = generatePostsHTML();
             sectionTitle.innerHTML = '<i class="fas fa-pencil-alt"></i> My Posts';
-            // для постов лайки не добавляем
         }
 
         function attachLikeButtons(container) {
             container.querySelectorAll('.like-btn').forEach(btn => {
-                // убираем старые обработчики, чтобы не множились
                 btn.replaceWith(btn.cloneNode(true));
             });
-            // заново находим и навешиваем
             container.querySelectorAll('.like-btn').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -863,13 +916,6 @@
 
         // ============= РЕНДЕР ПОЛНОЙ СТРАНИЦЫ =============
         function renderApp() {
-            if (state.loading) {
-                loadingElement.style.display = 'block';
-                return;
-            }
-
-            loadingElement.style.display = 'none';
-
             if (state.error) {
                 appElement.innerHTML = `
                     <div class="error-message">
@@ -884,14 +930,12 @@
             appElement.innerHTML = generateAppHTML();
             applyBannerImage();
 
-            // после вставки DOM инициализируем табы
             const postsGrid = document.querySelector('.posts-grid');
             const sectionTitle = document.querySelector('.section-title');
             const tabRepos = document.getElementById('tab-repos');
             const tabPosts = document.getElementById('tab-posts');
 
             if (tabRepos && tabPosts && postsGrid && sectionTitle) {
-                // обработчики
                 tabRepos.addEventListener('click', () => {
                     if (currentTab === 'repos') return;
                     currentTab = 'repos';
@@ -908,7 +952,6 @@
                     renderPosts(postsGrid, sectionTitle);
                 });
 
-                // начальное состояние: показываем репозитории
                 renderRepos(postsGrid, sectionTitle);
             }
         }
@@ -919,13 +962,10 @@
             if (!banner) return;
 
             if (BANNER_IMAGE) {
-                // Try to load the image from the root
                 banner.style.backgroundImage = `url('${BANNER_IMAGE}')`;
                 banner.style.backgroundSize = 'cover';
                 banner.style.backgroundPosition = 'center';
-                // Keep the pattern overlay
             } else {
-                // Use gradient with custom colors
                 banner.style.background = `linear-gradient(135deg, ${BANNER_GRADIENT_START} 0%, ${BANNER_GRADIENT_END} 100%)`;
             }
         }
@@ -933,7 +973,6 @@
         // Generate HTML for the entire app
         function generateAppHTML() {
             return `
-                <!-- Profile Header -->
                 <header class="profile-header">
                     <div class="banner">
                         <div class="banner-pattern"></div>
@@ -969,9 +1008,7 @@
                     </div>
                 </header>
 
-                <!-- Main Content -->
                 <main class="main-content">
-                    <!-- Posts Section with Tabs -->
                     <section class="posts-section">
                         <div class="section-header">
                             <h2 class="section-title" id="section-title">
@@ -988,9 +1025,7 @@
                         </div>
                     </section>
 
-                    <!-- Sidebar -->
                     <aside class="sidebar">
-                        <!-- Contact Information -->
                         <div class="sidebar-widget">
                             <h3 class="widget-title">
                                 <i class="fas fa-envelope"></i>
@@ -1031,7 +1066,6 @@
                             </div>
                         </div>
 
-                        <!-- Quick Links -->
                         <div class="sidebar-widget">
                             <h3 class="widget-title">
                                 <i class="fas fa-external-link-alt"></i>
@@ -1076,7 +1110,6 @@
                     </aside>
                 </main>
 
-                <!-- Footer -->
                 <footer class="footer">
                     <p>© ${new Date().getFullYear()} ${state.profile.name || state.profile.login}'s Developer Profile. Data loaded live from GitHub.</p>
                     <p>Last updated: ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} | Powered by GitHub REST API</p>
@@ -1086,8 +1119,11 @@
         }
 
         // Initialize the application
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Проверяем, не забыл ли пользователь указать имя
             if (GITHUB_USERNAME === 'USERNAME') {
+                document.getElementById('checking-access').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
                 appElement.innerHTML = `
                     <div class="error-message">
                         <h3><i class="fas fa-exclamation-triangle"></i> Configuration Required</h3>
@@ -1097,8 +1133,16 @@
                 `;
                 return;
             }
-            
-            fetchGitHubData();
+
+            // Шаг 1: проверка режима обслуживания
+            const proceed = await checkConfigAndRedirect();
+            if (proceed) {
+                // Скрываем сообщение проверки, показываем основной интерфейс
+                document.getElementById('checking-access').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                fetchGitHubData();
+            }
+            // Если proceed === false, редирект уже выполнен, ничего не делаем
         });
     </script>
 </body>
