@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduled Maintenance | GhostDEV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #238636;
+            --primary-dark: #2ea043;
+            --bg-dark: #0d1117;
+            --bg-card: #161b22;
+            --bg-card-light: #21262d;
+            --text: #c9d1d9;
+            --text-light: #8b949e;
+            --border: #30363d;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .maintenance-container {
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Banner */
+        .banner {
+            height: 120px;
+            background: linear-gradient(135deg, #0d419d 0%, #238636 100%);
+            border-radius: var(--radius) var(--radius) 0 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ghost-icon {
+            font-size: 60px;
+            color: rgba(255, 255, 255, 0.9);
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.3));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 0 0 var(--radius) var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            margin-bottom: 25px;
+        }
+
+        .info-box {
+            background-color: var(--bg-card-light);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .info-row {
+            margin-bottom: 15px;
+        }
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        .info-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            color: white;
+            font-size: 1rem;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            margin: 25px 0 15px;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            width: 0%;
+            border-radius: 10px;
+            transition: width 1s linear;
+        }
+
+        /* Countdown */
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .countdown-item {
+            background-color: var(--bg-card-light);
+            border-radius: var(--radius);
+            padding: 15px;
+            min-width: 70px;
+        }
+        .countdown-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+        }
+        .countdown-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        /* Ghost Clicker Game */
+        .ghost-clicker {
+            margin: 20px 0;
+        }
+        .click-ghost {
+            font-size: 50px;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+        .click-ghost:active {
+            transform: scale(0.9);
+        }
+        .click-message {
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 10px;
+            min-height: 24px;
+        }
+        .click-counter {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-container">
+        <div class="banner">
+            <i class="fas fa-ghost ghost-icon"></i>
+        </div>
+        <div class="card">
+            <h1><i class="fas fa-tools" style="color: var(--primary); margin-right: 10px;"></i> Scheduled Maintenance</h1>
+            <p class="subtitle">We're cooking something special. The site will be back soon!</p>
+
+            <!-- Информация из конфига -->
+            <div class="info-box" id="info-box">
+                <div class="info-row">
+                    <div class="info-label">Description</div>
+                    <div class="info-value" id="desc-value">–</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Reason</div>
+                    <div class="info-value" id="reason-value">–</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Started</div>
+                    <div class="info-value" id="start-value">–</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Estimated Completion</div>
+                    <div class="info-value" id="finish-value">–</div>
+                </div>
+            </div>
+
+            <!-- Прогресс-бар -->
+            <div class="progress-container" id="progress-container" style="display: none;">
+                <div class="progress-header">
+                    <span>Overall Progress</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <!-- Обратный отсчёт -->
+            <div class="countdown" id="countdown-container">
+                <div class="countdown-item">
+                    <div class="countdown-value" id="countdown-hours">--</div>
+                    <div class="countdown-label">Hours</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-value" id="countdown-minutes">--</div>
+                    <div class="countdown-label">Minutes</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-value" id="countdown-seconds">--</div>
+                    <div class="countdown-label">Seconds</div>
+                </div>
+            </div>
+            <div id="maintenance-finished" style="display: none; margin: 20px 0; color: #2ea043; font-weight: 600;">
+                Maintenance should be completed now. Try reloading the page!
+            </div>
+
+            <!-- Ghost Clicker -->
+            <div class="ghost-clicker">
+                <i class="fas fa-ghost click-ghost" id="click-ghost"></i>
+                <p class="click-message" id="click-msg"></p>
+                <p class="click-counter">Ghost pets: <span id="click-count">0</span></p>
+            </div>
+
+            <a href="index.html" class="btn"><i class="fas fa-sync-alt"></i> Try Accessing the Site</a>
+        </div>
+        <div class="footer">
+            Ghost Development &copy; 2026
+        </div>
+    </div>
+
+    <script>
+        // Получаем параметры из URL
+        const params = new URLSearchParams(window.location.search);
+        const desc = params.get('desc') || 'No description provided.';
+        const reason = params.get('reason') || 'Not specified.';
+        const timeStart = params.get('timeStart');
+        const timeFinish = params.get('timeFinish');
+
+        // Отображаем данные
+        document.getElementById('desc-value').textContent = desc;
+        document.getElementById('reason-value').textContent = reason;
+        document.getElementById('start-value').textContent = timeStart ? new Date(timeStart).toLocaleString() : 'Unknown';
+        document.getElementById('finish-value').textContent = timeFinish ? new Date(timeFinish).toLocaleString() : 'Unknown';
+
+        // Прогресс и таймер
+        const progressContainer = document.getElementById('progress-container');
+        const progressFill = document.getElementById('progress-fill');
+        const progressPercent = document.getElementById('progress-percent');
+        const countdownHours = document.getElementById('countdown-hours');
+        const countdownMinutes = document.getElementById('countdown-minutes');
+        const countdownSeconds = document.getElementById('countdown-seconds');
+        const maintenanceFinished = document.getElementById('maintenance-finished');
+
+        function updateProgress() {
+            const now = new Date().getTime();
+            let start = null, finish = null;
+
+            if (timeStart) start = new Date(timeStart).getTime();
+            if (timeFinish) finish = new Date(timeFinish).getTime();
+
+            // Обновляем прогресс-бар, только если есть оба времени
+            if (start && finish && finish > start) {
+                progressContainer.style.display = 'block';
+                const total = finish - start;
+                const elapsed = now - start;
+                let percent = Math.min(100, Math.max(0, (elapsed / total) * 100));
+                progressFill.style.width = percent + '%';
+                progressPercent.textContent = Math.floor(percent) + '%';
+            } else {
+                progressContainer.style.display = 'none';
+            }
+
+            // Обратный отсчёт
+            if (finish && finish > now) {
+                const remaining = finish - now;
+                const hours = Math.floor(remaining / (1000 * 60 * 60));
+                const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+                countdownHours.textContent = String(hours).padStart(2, '0');
+                countdownMinutes.textContent = String(minutes).padStart(2, '0');
+                countdownSeconds.textContent = String(seconds).padStart(2, '0');
+                maintenanceFinished.style.display = 'none';
+            } else if (finish && finish <= now) {
+                countdownHours.textContent = '00';
+                countdownMinutes.textContent = '00';
+                countdownSeconds.textContent = '00';
+                maintenanceFinished.style.display = 'block';
+            } else {
+                // Нет времени окончания
+                countdownHours.textContent = '--';
+                countdownMinutes.textContent = '--';
+                countdownSeconds.textContent = '--';
+                maintenanceFinished.style.display = 'none';
+            }
+        }
+
+        // Запускаем таймер
+        updateProgress();
+        setInterval(updateProgress, 1000);
+
+        // Ghost Clicker Game
+        const ghost = document.getElementById('click-ghost');
+        const clickMsg = document.getElementById('click-msg');
+        const clickCountSpan = document.getElementById('click-count');
+        let clicks = 0;
+        const messages = [
+            "You're not alone!",
+            "Patience is a virtue.",
+            "The ghost appreciates your company.",
+            "Keep calm and code on.",
+            "Almost there... maybe.",
+            "Boop!",
+            "Hang in there!",
+            "Something wonderful is coming."
+        ];
+
+        ghost.addEventListener('click', () => {
+            clicks++;
+            clickCountSpan.textContent = clicks;
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            clickMsg.textContent = randomMsg;
+            // Эффект исчезновения сообщения через 2 секунды
+            clearTimeout(ghost.msgTimeout);
+            ghost.msgTimeout = setTimeout(() => {
+                clickMsg.textContent = '';
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
