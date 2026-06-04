@@ -286,15 +286,15 @@
             <a href="index.html" class="btn"><i class="fas fa-sync-alt"></i> Try Accessing the Site</a>
         </div>
         <div class="footer">
-            Ghost Development &copy; 2026 | MaintenancePage version: v0.1
+            GhostDEV &copy; 2026 | MaintenancePage version: v0.1.1
         </div>
     </div>
 
     <script>
         // Получаем параметры из URL
         const params = new URLSearchParams(window.location.search);
-        const desc = params.get('desc') || 'No description provided.';
-        const reason = params.get('reason') || 'Not specified.';
+        const desc = params.get('desc') || 'No description provided';
+        const reason = params.get('reason') || 'Not specified';
         const timeStart = params.get('timeStart');
         const timeFinish = params.get('timeFinish');
 
@@ -350,9 +350,9 @@
                 maintenanceFinished.style.display = 'block';
             } else {
                 // Нет времени окончания
-                countdownHours.textContent = '--';
-                countdownMinutes.textContent = '--';
-                countdownSeconds.textContent = '--';
+                countdownHours.textContent = 'S?';
+                countdownMinutes.textContent = 'M?';
+                countdownSeconds.textContent = 'H?';
                 maintenanceFinished.style.display = 'none';
             }
         }
